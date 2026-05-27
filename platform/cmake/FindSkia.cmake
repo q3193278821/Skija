@@ -16,9 +16,21 @@ else()
   endif()
 endif()
 
+# Common options for find_library and find_path when cross-compiling for Android
+if(ANDROID)
+  set(SKIA_PATH_OPTS NO_CMAKE_FIND_ROOT_PATH)
+else()
+  set(SKIA_PATH_OPTS)
+endif()
+
 # Skia library
 find_library(SKIA_LIBRARY skia PATH "${SKIA_LIBRARY_DIR}")
-if(WIN32)
+if(ANDROID)
+  find_library(SKIA_OPENGL_LIBRARY GLESv2)
+  find_library(SKIA_EGL_LIBRARY EGL)
+  find_library(SKIA_ANDROID_LIBRARY android)
+  find_library(SKIA_LOG_LIBRARY log)
+elseif(WIN32)
   set(SKIA_OPENGL_LIBRARY opengl32 CACHE STRING "...")
 elseif(APPLE)
   find_library(SKIA_OPENGL_LIBRARY OpenGL NAMES GL)
@@ -39,7 +51,9 @@ find_library(SKSHAPER_LIBRARY skshaper PATH "${SKIA_LIBRARY_DIR}")
 find_path(SKSHAPER_INCLUDE_DIR SkShaper.h HINTS "${SKIA_DIR}/modules/skshaper/include")
 if(NOT FREETYPE_LIBRARIES)
   set(FREETYPE_FOUND ON)
-  if (UNIX AND NOT APPLE)
+  if(ANDROID)
+    find_library(FREETYPE_LIBRARY NAMES freetype2 freetype HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
+  elseif (UNIX AND NOT APPLE)
     # Dynamically linked because fontconfig is dynamically linked
     # https://github.com/JetBrains/skija/issues/113
     find_library(FREETYPE_LIBRARY freetype)
@@ -107,6 +121,13 @@ set(SKIA_LIBRARIES
   ${SKIA_OPENGL_LIBRARY}
   CACHE INTERNAL "Skia libraries")
 
+if(ANDROID)
+  list(APPEND SKIA_LIBRARIES
+    ${SKIA_EGL_LIBRARY}
+    ${SKIA_ANDROID_LIBRARY}
+    ${SKIA_LOG_LIBRARY})
+endif()
+
 add_library(skia INTERFACE)
 target_include_directories(skia INTERFACE
   ${SKIA_DIR}
@@ -133,6 +154,10 @@ target_include_directories(skia INTERFACE
   ${SKIA_DIR}/third_party/icu
   ${SKIA_SKRESOURCES_INCLUDE_DIR}
 )
+if(NOT APPLE)
+  target_include_directories(skia INTERFACE
+    ${SKIA_DIR}/include/third_party/vulkan)
+endif()
 
 if(WIN32)
   target_include_directories(skia INTERFACE
@@ -157,6 +182,9 @@ if(WIN32)
 elseif(APPLE)
   target_compile_definitions(skia INTERFACE
     SK_BUILD_FOR_MAC)
+elseif(ANDROID)
+  target_compile_definitions(skia INTERFACE
+    SK_BUILD_FOR_ANDROID)
 else()
   target_compile_definitions(skia INTERFACE
     SK_SAMPLES_FOR_X)
@@ -169,7 +197,7 @@ if(APPLE)
     ${COCOA_LIBRARY} ${METAL_LIBRARY})
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT ANDROID)
   # Change the kN32_SkColorType ordering to BGRA to work in X windows.
   target_compile_definitions(skia INTERFACE
     SK_R32_SHIFT=16)
