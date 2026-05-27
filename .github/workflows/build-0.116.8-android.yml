@@ -1,7 +1,7 @@
 on:
   pull_request:
     branches:
-      - 'master'
+      - '0.116.8-android'
     paths:
       - '.github'
       - 'platform'
