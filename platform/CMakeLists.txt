@@ -58,6 +58,9 @@ if(APPLE)
     add_definitions(-DSK_ENABLE_API_AVAILABLE
         -DSK_METAL
         -DSK_SHAPER_CORETEXT_AVAILABLE)
+elseif(ANDROID)
+    # JNI headers are provided by NDK
+    target_compile_options(skija PRIVATE -fno-rtti)
 
 elseif(UNIX)
     target_include_directories(skija PRIVATE $ENV{JAVA_HOME}/include $ENV{JAVA_HOME}/include/linux)
