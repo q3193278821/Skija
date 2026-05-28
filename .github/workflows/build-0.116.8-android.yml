@@ -55,8 +55,8 @@ jobs:
           SKIA_OUT="platform/Skia-m116-d2c211228d-android-Release-${{ matrix.arch }}/out/Release-${{ matrix.arch }}"
     
           # 强制指定 harfbuzz 和 freetype 为存在的 .a 文件
-          sed -i "s|find_library(HARFBUZZ_LIBRARY NAMES harfbuzz HINTS \"\${SKIA_LIBRARY_DIR}\" \${SKIA_PATH_OPTS})|set(HARFBUZZ_LIBRARY ${SKIA_OUT}/libharfbuzz.a)|" cmake/FindSkia.cmake
-          sed -i "s|find_library(FREETYPE_LIBRARY NAMES freetype2 freetype HINTS \"\${SKIA_LIBRARY_DIR}\" \${SKIA_PATH_OPTS})|set(FREETYPE_LIBRARY ${SKIA_OUT}/libfreetype.a)|" cmake/FindSkia.cmake
+          sed -i "s|find_library(HARFBUZZ_LIBRARY NAMES harfbuzz HINTS \"\${SKIA_LIBRARY_DIR}\" \${SKIA_PATH_OPTS})|set(HARFBUZZ_LIBRARY ${SKIA_OUT}/libharfbuzz.a)|" platform/cmake/FindSkia.cmake
+          sed -i "s|find_library(FREETYPE_LIBRARY NAMES freetype2 freetype HINTS \"\${SKIA_LIBRARY_DIR}\" \${SKIA_PATH_OPTS})|set(FREETYPE_LIBRARY ${SKIA_OUT}/libfreetype.a)|" platform/cmake/FindSkia.cmake
     
           # 设置 Android 交叉编译变量
           if [ "${{ matrix.arch }}" = "arm64" ]; then
