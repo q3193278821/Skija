@@ -47,31 +47,8 @@ jobs:
         run: sdkmanager "ndk;25.1.8937393"
       - name: Set NDK Home
         run: echo "ANDROID_NDK_HOME=${{ env.ANDROID_HOME }}/ndk/25.1.8937393" >> $GITHUB_ENV
-      - name: Ensure dummy libs for harfbuzz/freetype
-        run: |
-          SKIA_OUT="platform/Skia-m116-d2c211228d-android-Release-${{ matrix.arch }}/out/Release-${{ matrix.arch }}"
-          # 如果 harfbuzz 库不存在，创建一个空的 .a
-          if [ ! -f "$SKIA_OUT/libharfbuzz.a" ]; then
-            echo "Creating empty libharfbuzz.a"
-            mkdir -p "$SKIA_OUT"
-            ar crs "$SKIA_OUT/libharfbuzz.a"
-          fi
-          # 如果 freetype 库不存在，创建空的 .a（Android 下可能需要 freetype 或 freetype2）
-          if [ ! -f "$SKIA_OUT/libfreetype.a" ] && [ ! -f "$SKIA_OUT/libfreetype2.a" ]; then
-            echo "Creating empty libfreetype.a"
-            mkdir -p "$SKIA_OUT"
-            ar crs "$SKIA_OUT/libfreetype.a"
-          fi
       - name: Build Android ${{ matrix.arch }}
-        run: |
-          rm -rf target/*/native
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            export ANDROID_ABI=arm64-v8a
-          else
-            export ANDROID_ABI=x86_64
-          fi
-          export ANDROID_PLATFORM=android-33
-          python3 script/build.py --system android --arch ${{ matrix.arch }} --cmake-toolchain-file $ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake
+        run: python3 script/build.py --system android --arch ${{ matrix.arch }}
       - name: Package Android ${{ matrix.arch }}
         run: python3 script/package_platform.py --system android --arch ${{ matrix.arch }}
       - uses: actions/upload-artifact@v4
