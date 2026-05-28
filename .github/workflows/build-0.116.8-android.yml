@@ -69,7 +69,6 @@ jobs:
              python3 script/build.py \
                --system android \
                --arch ${{ matrix.arch }} \
-               --cmake-toolchain-file $ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
                --skia-release m116-d2c211228d
       - name: Package Android ${{ matrix.arch }}
         run: python3 script/package_platform.py --system android --arch ${{ matrix.arch }}
