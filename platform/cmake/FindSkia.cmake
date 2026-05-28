@@ -24,7 +24,7 @@ else()
 endif()
 
 # Skia library
-find_library(SKIA_LIBRARY skia PATH "${SKIA_LIBRARY_DIR}")
+find_library(SKIA_LIBRARY NAMES skia HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
 if(ANDROID)
   find_library(SKIA_OPENGL_LIBRARY GLESv2)
   find_library(SKIA_EGL_LIBRARY EGL)
@@ -41,14 +41,17 @@ else()
 endif()
 
 # SkUnicode
-find_library(SKUNICODE_LIBRARY skunicode PATH "${SKIA_LIBRARY_DIR}")
-find_path(SKUNICODE_INCLUDE_DIR SkUnicode.h HINTS "${SKIA_DIR}/modules/skunicode/include")
+find_library(SKUNICODE_CORE_LIBRARY NAMES skunicode_core HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
+find_library(SKUNICODE_ICU_LIBRARY NAMES skunicode_icu HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
+find_library(SKIA_ICU_LIBRARY NAMES icu HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
 add_library(skunicode INTERFACE)
-target_link_libraries(skunicode INTERFACE ${SKUNICODE_LIBRARY})
+target_link_libraries(skunicode INTERFACE ${SKUNICODE_CORE_LIBRARY} ${SKUNICODE_ICU_LIBRARY} ${SKIA_ICU_LIBRARY})
+
+find_path(SKUNICODE_INCLUDE_DIR SkUnicode.h HINTS "${SKIA_DIR}/modules/skunicode/include" ${SKIA_PATH_OPTS})
 
 # SkShaper module + freetype + harfbuzz
-find_library(SKSHAPER_LIBRARY skshaper PATH "${SKIA_LIBRARY_DIR}")
-find_path(SKSHAPER_INCLUDE_DIR SkShaper.h HINTS "${SKIA_DIR}/modules/skshaper/include")
+find_library(SKSHAPER_LIBRARY NAMES skshaper HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
+find_path(SKSHAPER_INCLUDE_DIR SkShaper.h HINTS "${SKIA_DIR}/modules/skshaper/include" ${SKIA_PATH_OPTS})
 if(NOT FREETYPE_LIBRARIES)
   set(FREETYPE_FOUND ON)
   if(ANDROID)
@@ -63,54 +66,57 @@ if(NOT FREETYPE_LIBRARIES)
   set(FREETYPE_LIBRARIES ${FREETYPE_LIBRARY})
   set(FREETYPE_INCLUDE_DIRS "${SKIA_DIR}/third_party/externals/freetype/include")
 endif()
+
 if(NOT HARFBUZZ_LIBRARIES)
-  find_library(HARFBUZZ_LIBRARY NAMES harfbuzz HINTS "${SKIA_LIBRARY_DIR}")
+  find_library(HARFBUZZ_LIBRARY NAMES harfbuzz HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
   set(HARFBUZZ_LIBRARIES ${HARFBUZZ_LIBRARY})
   set(HARFBUZZ_INCLUDE_DIRS "${SKIA_DIR}/third_party/externals/harfbuzz/src")
 endif()
+
 add_library(skshaper INTERFACE)
 target_link_libraries(skshaper INTERFACE ${SKSHAPER_LIBRARY})
 
 # SkParagraph
-find_library(SKPARAGRAPH_LIBRARY skparagraph PATH "${SKIA_LIBRARY_DIR}")
-find_path(SKPARAGRAPH_INCLUDE_DIR Paragraph.h HINTS "${SKIA_DIR}/modules/skparagraph/include")
+find_library(SKPARAGRAPH_LIBRARY NAMES skparagraph HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
+find_path(SKPARAGRAPH_INCLUDE_DIR Paragraph.h HINTS "${SKIA_DIR}/modules/skparagraph/include" ${SKIA_PATH_OPTS})
 add_library(skparagraph INTERFACE)
 target_link_libraries(skparagraph INTERFACE ${SKPARAGRAPH_LIBRARY})
 
 # SVG
-find_library(SKIA_SVG_LIBRARY svg PATH "${SKIA_LIBRARY_DIR}")
+find_library(SKIA_SVG_LIBRARY NAMES svg HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
 add_library(svg INTERFACE)
 target_link_libraries(svg INTERFACE ${SKIA_SVG_LIBRARY})
-find_path(SKIA_SVG_INCLUDE_DIR SkSVGDOM.h HINTS "${SKIA_DIR}/modules/svg/include")
+find_path(SKIA_SVG_INCLUDE_DIR SkSVGDOM.h HINTS "${SKIA_DIR}/modules/svg/include" ${SKIA_PATH_OPTS})
 
 # SkResources
-find_library(SKIA_SKRESOURCES_LIBRARY skresources PATH "${SKIA_LIBRARY_DIR}")
+find_library(SKIA_SKRESOURCES_LIBRARY NAMES skresources HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
 add_library(skresources INTERFACE)
 target_link_libraries(skresources INTERFACE ${SKIA_SKRESOURCES_LIBRARY})
-find_path(SKIA_SKRESOURCES_INCLUDE_DIR SkResources.h HINTS "${SKIA_DIR}/modules/skresources/include")
+find_path(SKIA_SKRESOURCES_INCLUDE_DIR SkResources.h HINTS "${SKIA_DIR}/modules/skresources/include" ${SKIA_PATH_OPTS})
 
 # SKOTTIE
-find_library(SKIA_SKOTTIE_LIBRARY skottie PATH "${SKIA_LIBRARY_DIR}")
+find_library(SKIA_SKOTTIE_LIBRARY NAMES skottie HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
+find_library(SKIA_JSONREADER_LIBRARY NAMES jsonreader HINTS "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
 add_library(skottie INTERFACE)
-target_link_libraries(skottie INTERFACE ${SKIA_SKOTTIE_LIBRARY})
-find_path(SKIA_SKOTTIE_INCLUDE_DIR Skottie.h HINTS "${SKIA_DIR}/modules/skottie/include")
+target_link_libraries(skottie INTERFACE ${SKIA_SKOTTIE_LIBRARY} ${SKIA_JSONREADER_LIBRARY})
+find_path(SKIA_SKOTTIE_INCLUDE_DIR Skottie.h HINTS "${SKIA_DIR}/modules/skottie/include" ${SKIA_PATH_OPTS})
 
 # SKSG
-find_library(SKIA_SKSG_LIBRARY sksg PATH "${SKIA_LIBRARY_DIR}")
+find_library(SKIA_SKSG_LIBRARY sksg PATH "${SKIA_LIBRARY_DIR}" ${SKIA_PATH_OPTS})
 add_library(sksg INTERFACE)
 target_link_libraries(sksg INTERFACE ${SKIA_SKSG_LIBRARY})
-find_path(SKIA_SKSG_INCLUDE_DIR SkSGInvalidationController.h HINTS "${SKIA_DIR}/modules/sksg/include")
+find_path(SKIA_SKSG_INCLUDE_DIR SkSGInvalidationController.h HINTS "${SKIA_DIR}/modules/sksg/include" ${SKIA_PATH_OPTS})
 
-find_path(SKIA_CONFIG_INCLUDE_DIR SkUserConfig.h HINTS "${SKIA_DIR}/include/config")
-find_path(SKIA_CORE_INCLUDE_DIR SkCanvas.h HINTS "${SKIA_DIR}/include/core")
-find_path(SKIA_PATHOPS_INCLUDE_DIR SkPathOps.h HINTS "${SKIA_DIR}/include/pathops")
-find_path(SKIA_CORE_SVG_INCLUDE_DIR SkSVGCanvas.h HINTS "${SKIA_DIR}/include/svg")
-find_path(SKIA_UTILS_INCLUDE_DIR SkTextUtils.h HINTS "${SKIA_DIR}/include/utils")
-find_path(SKIA_CODEC_INCLUDE_DIR SkCodec.h HINTS "${SKIA_DIR}/include/codec")
-find_path(SKIA_EFFECTS_INCLUDE_DIR SkShaderMaskFilter.h HINTS "${SKIA_DIR}/include/effects")
-find_path(SKIA_GPU_INCLUDE_DIR GrDirectContext.h HINTS "${SKIA_DIR}/include/gpu")
-find_path(SKIA_GPU2_INCLUDE_DIR gl/GrGLDefines.h HINTS "${SKIA_DIR}/src/gpu")
-find_path(SKIA_ANGLE_INCLUDE_DIR angle_gl.h HINTS "${SKIA_DIR}/third_party/externals/angle2/include")
+find_path(SKIA_CONFIG_INCLUDE_DIR SkUserConfig.h HINTS "${SKIA_DIR}/include/config" ${SKIA_PATH_OPTS})
+find_path(SKIA_CORE_INCLUDE_DIR SkCanvas.h HINTS "${SKIA_DIR}/include/core" ${SKIA_PATH_OPTS})
+find_path(SKIA_PATHOPS_INCLUDE_DIR SkPathOps.h HINTS "${SKIA_DIR}/include/pathops" ${SKIA_PATH_OPTS})
+find_path(SKIA_CORE_SVG_INCLUDE_DIR SkSVGCanvas.h HINTS "${SKIA_DIR}/include/svg" ${SKIA_PATH_OPTS})
+find_path(SKIA_UTILS_INCLUDE_DIR SkTextUtils.h HINTS "${SKIA_DIR}/include/utils" ${SKIA_PATH_OPTS})
+find_path(SKIA_CODEC_INCLUDE_DIR SkCodec.h HINTS "${SKIA_DIR}/include/codec" ${SKIA_PATH_OPTS})
+find_path(SKIA_EFFECTS_INCLUDE_DIR SkShaderMaskFilter.h HINTS "${SKIA_DIR}/include/effects" ${SKIA_PATH_OPTS})
+find_path(SKIA_GPU_INCLUDE_DIR GrDirectContext.h HINTS "${SKIA_DIR}/include/gpu" ${SKIA_PATH_OPTS})
+find_path(SKIA_GPU2_INCLUDE_DIR gl/GrGLDefines.h HINTS "${SKIA_DIR}/src/gpu" ${SKIA_PATH_OPTS})
+find_path(SKIA_ANGLE_INCLUDE_DIR angle_gl.h HINTS "${SKIA_DIR}/third_party/externals/angle2/include" ${SKIA_PATH_OPTS})
 find_path(SKIA_SKCMS_INCLUDE_DIR skcms.h
   HINTS
   "${SKIA_DIR}/third_party/skcms"
