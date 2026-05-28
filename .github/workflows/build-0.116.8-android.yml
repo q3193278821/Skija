@@ -48,7 +48,30 @@ jobs:
       - name: Set NDK Home
         run: echo "ANDROID_NDK_HOME=${{ env.ANDROID_HOME }}/ndk/25.1.8937393" >> $GITHUB_ENV
       - name: Build Android ${{ matrix.arch }}
-        run: python3 script/build.py --system android --arch ${{ matrix.arch }}
+        run: |
+          rm -rf target/*/native
+    
+          # 预编译包的输出目录（与 build.py 解压后的一致）
+          SKIA_OUT="platform/Skia-m116-d2c211228d-android-Release-${{ matrix.arch }}/out/Release-${{ matrix.arch }}"
+    
+          # 强制指定 harfbuzz 和 freetype 为存在的 .a 文件
+          sed -i "s|find_library(HARFBUZZ_LIBRARY NAMES harfbuzz HINTS \"\${SKIA_LIBRARY_DIR}\" \${SKIA_PATH_OPTS})|set(HARFBUZZ_LIBRARY ${SKIA_OUT}/libharfbuzz.a)|" cmake/FindSkia.cmake
+          sed -i "s|find_library(FREETYPE_LIBRARY NAMES freetype2 freetype HINTS \"\${SKIA_LIBRARY_DIR}\" \${SKIA_PATH_OPTS})|set(FREETYPE_LIBRARY ${SKIA_OUT}/libfreetype.a)|" cmake/FindSkia.cmake
+    
+          # 设置 Android 交叉编译变量
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            ANDROID_ABI=arm64-v8a
+          else
+            ANDROID_ABI=x86_64
+          fi
+          export ANDROID_PLATFORM=android-33
+    
+          # 执行构建
+          python3 script/build.py \
+            --system android \
+            --arch ${{ matrix.arch }} \
+            --cmake-toolchain-file $ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+            --skia-release m116-d2c211228d
       - name: Package Android ${{ matrix.arch }}
         run: python3 script/package_platform.py --system android --arch ${{ matrix.arch }}
       - uses: actions/upload-artifact@v4
