@@ -62,7 +62,7 @@ def main():
   subprocess.check_call(cmake_args, cwd=os.path.abspath(native_build_dir))
 
   # Ninja
-  build_utils.ninja(os.path.abspath(native_build_dir))
+  subprocess.check_call(['ninja'], cwd=os.path.abspath(native_build_dir))
 
   # Codesign
   if build_utils.system == 'macos' and os.getenv('APPLE_CODESIGN_IDENTITY'):
@@ -78,6 +78,7 @@ def main():
                     '../shared/target/classes',
                     classpath = common.deps_compile(),
                     release = '8')
+                    opts = ['-Xlint:-options'])
   build_utils.javac(build_utils.files('../shared/java9/**/*.java'),
                     '../shared/target/classes-java9',
                     classpath = common.deps_compile(),
