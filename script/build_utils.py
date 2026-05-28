@@ -79,6 +79,41 @@ def has_newer(sources, targets):
       return True
   return False
 
+def ninja(dir):
+  error_summary_pattern = re.compile(r'(\d+) errors? generated\.')
+  compile_pattern = re.compile(r'^/usr/bin/(?:c\+\+|clang\+\+|g\+\+)')
+  define_pattern = re.compile(r'(?:-D\S+\s*)+')
+  include_pattern = re.compile(r'(?:-I\S+\s*)+')
+  failed_files = 0
+  total_errors = 0
+
+  process = subprocess.Popen(
+    ['ninja', '-k', '0'],
+    cwd=dir,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    bufsize=1
+  )
+
+  for line in process.stdout:
+    if compile_pattern.match(line):
+      line = define_pattern.sub('-D[...] ', line)
+      line = include_pattern.sub('-I[...] ', line)
+
+    print(line, end='', flush=True)
+
+    error_summary_match = error_summary_pattern.search(line)
+    if error_summary_match:
+      errors = int(error_summary_match.group(1))
+      total_errors += errors
+      failed_files += 1
+
+  process.wait()
+  if process.returncode != 0:
+    print(f"\nBUILD FAILED, files: {failed_files}, errors: {total_errors}")
+    sys.exit(process.returncode)
+
 def fetch(url, file):
   if not os.path.exists(file):
     print('Downloading', url, flush=True)
