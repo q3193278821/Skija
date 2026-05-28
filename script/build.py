@@ -77,7 +77,7 @@ def main():
   build_utils.javac(build_utils.files('../shared/java/**/*.java'),
                     '../shared/target/classes',
                     classpath = common.deps_compile(),
-                    release = '8')
+                    release = '8',
                     opts = ['-Xlint:-options'])
   build_utils.javac(build_utils.files('../shared/java9/**/*.java'),
                     '../shared/target/classes-java9',
